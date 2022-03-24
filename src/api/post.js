@@ -1,4 +1,5 @@
 const express = require('express');
+const res = require('express/lib/response');
 const { Post, UserPost ,User } = require('../db/models');
 
 const router = express.Router();
@@ -41,7 +42,29 @@ router.post('/post', async (req, res, next) => {
   }
 });
 
-// Get the posts based on the userId
+
+/**
+ *  Method : GET
+ * Set the Error if someone did not give the parameter
+*/
+router.route("/posts").get(async(req,res) =>{
+  try {
+    res.status(400).json({
+      "Error Message" : "Id is required"
+    })
+
+  } catch (error) {
+    res.status(400).json(error);
+  }
+})
+
+
+
+/**
+ * Method : GET
+ * Get the all the post uploaded by a particular user
+ * here we use Id as the parameter for the userId
+ */
 router.route('/posts/:id').get( async(req,res) =>{
   try {
     // The param will be type caste to Integer
@@ -81,7 +104,7 @@ router.route('/posts/:id').get( async(req,res) =>{
 
     });
 
-    // If the user has uploaded any post then we will get the final response 
+    // If the user has uploaded any post then we will get the final response
     if(getPosts.length != 0)
     {
       res.status(200).json({"posts" : getPosts});
@@ -110,6 +133,172 @@ router.route('/posts/:id').get( async(req,res) =>{
     res.status(400).json(error);
   }
 } );
+
+
+/**
+ * Method : PUT
+ * Update the particular post
+ * here we use Id as the parameter for the postId
+ */
+  router.route("/posts/:id").put( async (req, res) =>{
+    try{
+       const postId = parseInt(req.params.id);
+
+
+
+      if(!Number.isInteger(postId))
+      {
+        res.status(400).json({
+          "Error Message" : "Id is Invalid"
+        })
+      }
+      else
+      {
+        const findPost = await Post.findOne({
+          where : {
+            id: postId
+          }
+        })
+
+        // if the post is not found then it will throw error
+        if(!findPost)
+        {
+          res.status(404).json({
+            "Error Message" : "Post not found !"
+          })
+        }
+        else
+        {
+          const {authorIds, text, tags} = await req.body;
+
+          if(!text)
+          {
+            res.status(400).json({
+              "Error Message" : "Text is Required!"
+            })
+          }
+          else if(!authorIds)
+          {
+            res.status(400).json({
+              "Error Message" : "Author Ids are Required!"
+            })
+          }
+          else if (!Array.isArray(authorIds) )
+          {
+            res.status(400).json({
+              "Error Message" : "Author Ids are invalid"
+            })
+          }
+          else if(authorIds.length == 0)
+          {
+            res.status(400).json({
+              "Error Message" : "Author Ids are invalid"
+            })
+          }
+          else
+          {
+
+            let userPost = {
+
+            }
+            await authorIds.forEach(userIds =>{
+
+              // updateUserPost(userIds,postId,res);
+
+            })
+
+            // updateUserPost(1,postId);
+
+            const values = {
+              text,
+            }
+            if(tags)
+            {
+              values.tags = tags.join(",");
+            }
+
+            findPost.text = values.text;
+            findPost.tags = values.tags;
+            values.authorIds =  authorIds;
+
+            // save the post in the database
+            findPost.save().then(
+              result => {
+                result.authorIds = authorIds;
+                result.tags = result.tags.split(",");
+                return result;
+              }
+            ).then(finalResult =>{
+              // console.log(finalResult)
+              res.status(200).json(finalResult);
+            })
+
+
+
+          }
+
+
+        }
+
+      }
+
+    }
+    catch(error)
+    {
+      res.status(400).json(error);
+    }
+  })
+
+ async function updateUserPost(userId, postIds)
+  {
+    try {
+
+      console.log(userId)
+      let findUserPost = await UserPost.findAll({
+        where : {
+          userId : userId
+        }
+      })
+
+      if(!findUserPost)
+      {
+        console.log(`No user with userId ${userId} exists `);
+      }
+      else
+      {
+        // console.log(findUserPost[0]);
+        await findUserPost.forEach(userPost =>{
+          console.log(userPost.dataValues);
+          userPost.dataValues.postId =  postIds;
+          console.log(" new user post :",userPost.dataValues)
+          userPost.update(
+            {
+              postId : postIds
+            },
+            {
+              where: {
+                userId : userId
+              }
+            }
+          ).then(result =>{
+            console.log(result.save());
+          })
+
+
+
+
+        });
+
+
+
+
+
+      }
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
 
 module.exports = router;
