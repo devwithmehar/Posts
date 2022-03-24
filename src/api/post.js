@@ -1,5 +1,5 @@
 const express = require('express');
-const { Post, UserPost } = require('../db/models');
+const { Post, UserPost ,User } = require('../db/models');
 
 const router = express.Router();
 
@@ -7,7 +7,7 @@ const router = express.Router();
  * Create a new blog post
  * req.body is expected to contain {text: required(string), tags: optional(Array<string>)}
  */
-router.post('/', async (req, res, next) => {
+router.post('/post', async (req, res, next) => {
   try {
     // Validation
     if (!req.user) {
@@ -40,5 +40,64 @@ router.post('/', async (req, res, next) => {
     next(error);
   }
 });
+
+// Get the posts based on the userId
+router.route('/posts/:id').get( async(req,res) =>{
+  try {
+    // The param will be type caste to Integer
+
+    const userId = await parseInt(req.params.id);
+
+    // If the userId is not Integer then It will throw error
+    if(!Number.isInteger(userId))
+    {
+      res.status(400).json({
+        "Error Message" : "Id is Invalid"
+      })
+    }
+
+    else
+    {
+
+      const findUser = await User.findOne({
+        where : {
+          id: userId
+        }
+      })
+
+
+    //  If the user is found from the Users Table then it will check for the post
+    if(findUser)
+    {
+
+    const getPosts = await Post.getPostsByUserId(userId);
+
+
+
+
+    getPosts.forEach(post => {
+
+        post.tags = post.tags.split(",");
+
+    });
+
+    res.status(200).json({"posts" : getPosts});
+  }
+  // If there is no such user with the particular id , then It will throw the Error
+  else
+  {
+    res.status(404).json({
+      "Error Message" : "No such User Exists"
+    })
+  }
+
+
+  }
+
+  } catch (error) {
+    res.status(400).json(error);
+  }
+} );
+
 
 module.exports = router;
