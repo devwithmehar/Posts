@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.use('/', auth);
 
-router.use('/post', post);
+router.use('/', post);
 
 module.exports = router;
