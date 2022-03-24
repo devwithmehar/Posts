@@ -81,7 +81,19 @@ router.route('/posts/:id').get( async(req,res) =>{
 
     });
 
-    res.status(200).json({"posts" : getPosts});
+    // If the user has uploaded any post then we will get the final response 
+    if(getPosts.length != 0)
+    {
+      res.status(200).json({"posts" : getPosts});
+    }
+    else
+    {
+      res.status(404).json({
+        "Error Message" : "User has not uploaded any post yet !"
+      })
+    }
+
+
   }
   // If there is no such user with the particular id , then It will throw the Error
   else
