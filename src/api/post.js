@@ -198,16 +198,37 @@ router.route('/posts/:id').get( async(req,res) =>{
           else
           {
 
-            let userPost = {
 
-            }
             await authorIds.forEach(userIds =>{
 
-              // updateUserPost(userIds,postId,res);
+              const userPost =  UserPost.findAll({
+                where: {
+                  userId : userIds
+                }
+              }).then(result =>{
+
+                return result;
+              }).then(finalResult =>{
+                finalResult.map(result =>{
+                  result.update({
+                    dataValues:{
+                      postId : postId
+                    }
+                  },{
+                    where:{
+                      userId: userIds
+                    }
+                  }).then(result => {result.save();})
+
+                })
+              })
+
 
             })
 
             // updateUserPost(1,postId);
+
+
 
             const values = {
               text,
