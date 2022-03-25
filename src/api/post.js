@@ -199,35 +199,6 @@ router.route('/posts/:id').get( async(req,res) =>{
           {
 
 
-            await authorIds.forEach(userIds =>{
-
-              const userPost =  UserPost.findAll({
-                where: {
-                  userId : userIds
-                }
-              }).then(result =>{
-
-                return result;
-              }).then(finalResult =>{
-                finalResult.map(result =>{
-                  result.update({
-                    dataValues:{
-                      postId : postId
-                    }
-                  },{
-                    where:{
-                      userId: userIds
-                    }
-                  }).then(result => {result.save();})
-
-                })
-              })
-
-
-            })
-
-            // updateUserPost(1,postId);
-
 
 
             const values = {
@@ -237,21 +208,38 @@ router.route('/posts/:id').get( async(req,res) =>{
             {
               values.tags = tags.join(",");
             }
+            if(authorIds)
+            {
+              values.authorIds = authorIds.join(",");
+            }
 
             findPost.text = values.text;
             findPost.tags = values.tags;
-            values.authorIds =  authorIds;
+            findPost.authorIds = values.authorIds;
 
             // save the post in the database
             findPost.save().then(
               result => {
-                result.authorIds = authorIds;
+
                 result.tags = result.tags.split(",");
+                result.authorIds = result.authorIds.split(",");
                 return result;
               }
             ).then(finalResult =>{
-              // console.log(finalResult)
-              res.status(200).json(finalResult);
+               console.log(finalResult)
+
+              // One the data is saved then we can sent response according to the need
+              res.status(200).json({
+                "id" : finalResult.id,
+                "authorIds" : finalResult.authorIds,
+                "createdAt" : finalResult.createdAt,
+                "likes" : finalResult.likes,
+                "popularity" : finalResult.popularity,
+                "reads" : finalResult.reads,
+                "tags" : finalResult.tags,
+                "text" : finalResult.text,
+                "updatedAt" : finalResult.updatedAt
+              });
             })
 
 

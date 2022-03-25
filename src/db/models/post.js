@@ -4,7 +4,7 @@ const UserPost = require('./user_post');
 
 const Post = db.define(
   'post',
-  {
+  { 
     text: {
       type: Sequelize.STRING,
       allowNull: false,

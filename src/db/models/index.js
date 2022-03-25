@@ -2,6 +2,7 @@ const User = require('./user');
 const Post = require('./post');
 const UserPost = require('./user_post');
 
+
 User.belongsToMany(Post, {
   through: UserPost,
 });
