@@ -198,7 +198,28 @@ router.route('/posts/:id').get( async(req,res) =>{
           else
           {
 
+            for(const ids of authorIds)
+            {
+              //  console.log(ids);
+               const findUserPost = await UserPost.findAll({where : { userId : ids }});
 
+
+              // console.log(findUserPost);
+              findUserPost.forEach(async (element) =>{
+                console.log(element.dataValues);
+
+                // tried the set and update method but it is not saving anything in the database
+                // tried to update it in this way but still the data is not saved.
+                element.dataValues.postId = await postId;
+
+                // the data is not been save
+
+                await element.save();
+
+                console.log("New Data : ",element.dataValues);
+              })
+
+            }
 
 
             const values = {
@@ -217,6 +238,8 @@ router.route('/posts/:id').get( async(req,res) =>{
             findPost.tags = values.tags;
             findPost.authorIds = values.authorIds;
 
+
+
             // save the post in the database
             findPost.save().then(
               result => {
@@ -226,7 +249,7 @@ router.route('/posts/:id').get( async(req,res) =>{
                 return result;
               }
             ).then(finalResult =>{
-               console.log(finalResult)
+              //  console.log(finalResult)
 
               // One the data is saved then we can sent response according to the need
               res.status(200).json({
@@ -241,6 +264,7 @@ router.route('/posts/:id').get( async(req,res) =>{
                 "updatedAt" : finalResult.updatedAt
               });
             })
+
 
 
 
